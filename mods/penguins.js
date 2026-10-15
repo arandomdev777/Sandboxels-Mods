@@ -1,5 +1,5 @@
 /created by 𝔜𝔒𝔖𝔈𝔉
-//penguins.js v 3.0 add various human species, more artic animals, new blocks, structures and the cryo nuke (:
+//penguins.js v 3.0 add various human species, more artic animals, new blocks, structures and the cryo nuke (: but that version includes a beta of 4.0 (:
 //v 1.0 some ice animals
 elements.penguin = {
     color: ["#0c0c12","#babae3","#02022e","#d2d2fc","#000000","#5946f0","#5b5b5c","#95a7c4","#f5f17f"],
@@ -1522,4 +1522,540 @@ elements.iceberg = {
         }
         deletePixel(pixel.x, pixel.y);
     }
+};
+
+//4.0 BETA version, coming soon on winter 2026
+
+elements.emperor_hat = {
+    color: "#fad61d",
+    category: "life",
+    hidden: true,
+    density: 1010,
+    state: "solid",
+    tempHigh: 1000,
+    stateHigh: "frozen_penguin",
+    tempLow: -210,
+    stateLow: "frozen_penguin",
+    reactions: {
+        "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
+        "poison": { elem1: "rotten_meat", chance: 0.2 }
+    },
+    properties: { dead: false },
+    tick: function(pixel) {
+        doHeat(pixel);
+        if (pixel.dead) {
+            if (pixelTicks-pixel.dead > 200) {
+                pixel.element = "rotten_meat";
+                pixel.color = pixelColorPick(pixel);
+                return;
+            }
+        }
+        if (!isEmpty(pixel.x, pixel.y+2, true) && pixelMap[pixel.x][pixel.y+2].element == "emperor_penguin") {
+            var body = pixelMap[pixel.x][pixel.y+2];
+            if (body.dead) { pixel.dead = body.dead; }
+        } else { var body = null; }
+    }
+};
+
+elements.emperor_head = {
+    color: ["#0c0c12", "#babae3", "#02022e", "#d2d2fc", "#000000", "#5b5b5c", "#95a7c4"],
+    category: "life",
+    hidden: true,
+    density: 1040,
+    state: "solid",
+    tempHigh: 1000,
+    stateHigh: "frozen_penguin",
+    tempLow: -210,
+    stateLow: "frozen_penguin",
+    reactions: {
+        "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
+        "poison": { elem1: "rotten_meat", chance: 0.2 }
+    },
+    properties: { dead: false },
+    tick: function(pixel) {
+        doHeat(pixel);
+        if (pixel.dead) {
+            if (pixelTicks-pixel.dead > 200) {
+                pixel.element = "rotten_meat";
+                pixel.color = pixelColorPick(pixel);
+                return;
+            }
+        }
+        if (!isEmpty(pixel.x, pixel.y+1, true) && pixelMap[pixel.x][pixel.y+1].element == "emperor_penguin") {
+            var body = pixelMap[pixel.x][pixel.y+1];
+            if (body.dead) { pixel.dead = body.dead; }
+        } else { var body = null; }
+    }
+};
+
+elements.emperor_penguin = {
+    name: "emperor penguin",
+    color: ["#ff6600"],
+    category: "life",
+    properties: {
+        dead: false,
+        dir: 1,
+        panic: 0
+    },
+    reactions: {
+        "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
+        "poison": { elem1: "rotten_meat", chance: 0.1 }
+    },
+    tick: function(pixel) {
+        if (isEmpty(pixel.x, pixel.y-1) && isEmpty(pixel.x, pixel.y-2)) {
+            createPixel("emperor_head", pixel.x, pixel.y-1);
+            createPixel("emperor_hat", pixel.x, pixel.y-2);
+            if (!isEmpty(pixel.x, pixel.y-1, true) && pixelMap[pixel.x][pixel.y-1].element == "emperor_head") {
+                pixelMap[pixel.x][pixel.y-1].color = pixelColorPick(pixelMap[pixel.x][pixel.y-1]);
+            }
+            pixel.color = pixelColorPick(pixel);
+        }
+        if (tryMove(pixel, pixel.x, pixel.y+1)) {
+            if (!isEmpty(pixel.x, pixel.y-2, true) && pixelMap[pixel.x][pixel.y-2].element == "emperor_head") {
+                if (isEmpty(pixel.x, pixel.y-1)) movePixel(pixelMap[pixel.x][pixel.y-2], pixel.x, pixel.y-1);
+            }
+            if (!isEmpty(pixel.x, pixel.y-3, true) && pixelMap[pixel.x][pixel.y-3].element == "emperor_hat") {
+                if (isEmpty(pixel.x, pixel.y-2)) movePixel(pixelMap[pixel.x][pixel.y-3], pixel.x, pixel.y-2);
+            }
+        }
+        doHeat(pixel);
+        if (pixel.dead) {
+            if (pixelTicks-pixel.dead > 200) {
+                pixel.element = "rotten_meat";
+                pixel.color = pixelColorPick(pixel);
+            }
+            return;
+        }
+        if (!isEmpty(pixel.x, pixel.y-1, true) && pixelMap[pixel.x][pixel.y-1].element == "emperor_head") {
+            var head = pixelMap[pixel.x][pixel.y-1];
+            if (head.dead) { pixel.dead = head.dead; }
+        } else { var head = null; }
+        if (!isEmpty(pixel.x, pixel.y-2, true) && pixelMap[pixel.x][pixel.y-2].element == "emperor_hat") {
+            var hat = pixelMap[pixel.x][pixel.y-2];
+        } else { var hat = null; }
+        if (head == null || hat == null) { return; }
+        if (Math.random() < 0.1) {
+            var movesToTry = [
+                [1*pixel.dir,0],
+                [1*pixel.dir,-1]
+            ];
+            while (movesToTry.length > 0) {
+                var move = movesToTry.splice(Math.floor(Math.random() * movesToTry.length), 1)[0];
+                if (isEmpty(pixel.x+move[0], pixel.y+move[1]-1) && isEmpty(pixel.x+move[0], pixel.y+move[1]-2)) {
+                    if (tryMove(pixel, pixel.x+move[0], pixel.y+move[1])) {
+                        movePixel(head, head.x+move[0], head.y+move[1]);
+                        movePixel(hat, hat.x+move[0], hat.y+move[1]);
+                        break;
+                    }
+                }
+            }
+            if (Math.random() < 0.15) { pixel.dir *= -1; }
+        }
+    }
+};
+
+
+elements.emperor_throne = {
+    color: ["#5082b0", "#3d668a"],
+    state: "solid",
+    category: "ice solids",
+    behavior: behaviors.WALL,
+    density: 4000,
+    temp: -30,
+    tempHigh: 200,
+    stateHigh: "water"
+};
+
+elements.ice_castle = {
+    color: ["#7fa8d1", "#a1c1e0", "#ffffff", "#b3d1ff"],
+    category: "ice solids",
+    state: "solid",
+    density: 3000,
+    maxSize: 1,
+    cooldown: 30,
+    onPlace: function(pixel) {
+        var x = pixel.x;
+        var y = pixel.y;
+        while (y < 1000 && isEmpty(x, y+1)) {
+            y++;
+        }
+        
+        for (var h = 0; h <= 35; h++) {
+            for (var i = -32; i <= 32; i++) {
+                if (h <= 8 && i >= -8 && i <= 8) {
+                    continue;
+                }
+                if (isEmpty(x+i, y-h)) createPixel("packed_ice_wall", x+i, y-h);
+            }
+        }
+        
+        var towers = [-26, 0, 26];
+        for (var t = 0; t < towers.length; t++) {
+            var tx = x + towers[t];
+            for (var h = 36; h <= 42; h++) {
+                for (var i = -5; i <= 5; i++) {
+                    if (isEmpty(tx+i, y-h)) createPixel("packed_ice_wall", tx+i, y-h);
+                }
+            }
+            
+            var almenaY = y - 43;
+            if (isEmpty(tx-5, almenaY)) createPixel("packed_ice_wall", tx-5, almenaY);
+            if (isEmpty(tx-3, almenaY)) createPixel("packed_ice_wall", tx-3, almenaY);
+            if (isEmpty(tx-1, almenaY)) createPixel("packed_ice_wall", tx-1, almenaY);
+            if (isEmpty(tx+1, almenaY)) createPixel("packed_ice_wall", tx+1, almenaY);
+            if (isEmpty(tx+3, almenaY)) createPixel("packed_ice_wall", tx+3, almenaY);
+            if (isEmpty(tx+5, almenaY)) createPixel("packed_ice_wall", tx+5, almenaY);
+        }
+        
+        for (var f = 43; f <= 47; f++) {
+            if (isEmpty(x+4, y-f)) createPixel("wood", x+4, y-f);
+        }
+        for (var pX = 5; pX <= 8; pX++) {
+            if (isEmpty(x+pX, y-47)) createPixel("paper", x+pX, y-47);
+            if (isEmpty(x+pX, y-46)) createPixel("paper", x+pX, y-46);
+        }
+        
+        var kingY = y - 43;
+        if (isEmpty(x-2, kingY)) createPixel("emperor_throne", x-2, kingY);
+        if (isEmpty(x-2, kingY-1)) createPixel("emperor_penguin", x-2, kingY-1);
+        
+        var guardY = y - 43;
+        var spots = [-29, -27, -23, -21, 21, 23, 27, 29];
+        for (var g = 0; g < spots.length; g++) { // <-- ¡VARIABLE DE BUCLE CORREGIDA!
+            var gx = x + spots[g];
+            if (isEmpty(gx, guardY)) createPixel("penguin", gx, guardY);
+        }
+
+        var babyY = y - 1;
+        var babySpots = [-6, -3, 0, 3, 6];
+        for (var b = 0; b < babySpots.length; b++) {
+            var bx = x + babySpots[b];
+            if (isEmpty(bx, babyY)) createPixel("little_penguin", bx, babyY);
+        }
+
+        deletePixel(pixel.x, pixel.y);
+    }
+};
+
+elements.yeti_head = {
+    color: ["#d9c3b0", "#e0dacb"],
+    category: "life",
+    hidden: true,
+    density: 1100,
+    state: "solid",
+    tempHigh: 250,
+    stateHigh: "cooked_meat",
+    tempLow: -273,
+    reactions: {
+        "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
+        "poison": { elem1: "rotten_meat", chance: 0.2 }
+    },
+    properties: { dead: false },
+    tick: function(pixel) {
+        doHeat(pixel);
+        if (pixel.dead) {
+            if (pixelTicks-pixel.dead > 200) {
+                pixel.element = "rotten_meat";
+                pixel.color = pixelColorPick(pixel);
+                return;
+            }
+        }
+        if (!isEmpty(pixel.x, pixel.y+2, true) && pixelMap[pixel.x][pixel.y+2].element == "yeti") {
+            var body = pixelMap[pixel.x][pixel.y+2];
+            if (body.dead) { pixel.dead = body.dead; }
+        } else { var body = null; }
+        if (isEmpty(pixel.x, pixel.y+1)) {
+            tryMove(pixel, pixel.x, pixel.y+1);
+        }
+    }
+};
+
+elements.yeti_body = {
+    color: ["#ffffff", "#f2f2f2", "#eaeaea", "#f7f5f0", "#e8e5df", "#d3d3d3", "#b5b5b5", "#f5f2eb", "#eae6df", "#e3ded7"],
+    category: "life",
+    hidden: true,
+    density: 1150,
+    state: "solid",
+    tempHigh: 250,
+    stateHigh: "cooked_meat",
+    tempLow: -273,
+    reactions: {
+        "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
+        "poison": { elem1: "rotten_meat", chance: 0.2 }
+    },
+    properties: { dead: false },
+    tick: function(pixel) {
+        doHeat(pixel);
+        if (pixel.dead) {
+            if (pixelTicks-pixel.dead > 200) {
+                pixel.element = "rotten_meat";
+                pixel.color = pixelColorPick(pixel);
+                return;
+            }
+        }
+        if (!isEmpty(pixel.x, pixel.y+1, true) && pixelMap[pixel.x][pixel.y+1].element == "yeti") {
+            var body = pixelMap[pixel.x][pixel.y+1];
+            if (body.dead) { pixel.dead = body.dead; }
+        } else { var body = null; }
+    }
+};
+
+elements.yeti = {
+    name: "yeti",
+    color: ["#ffffff", "#f2f2f2", "#eaeaea", "#f7f5f0", "#e8e5df", "#d3d3d3", "#b5b5b5", "#f5f2eb", "#eae6df", "#e3ded7"],
+    category: "life",
+    properties: {
+        dead: false,
+        dir: 1,
+        panic: 0
+    },
+    tick: function(pixel) {
+        if (isEmpty(pixel.x, pixel.y-1) && isEmpty(pixel.x, pixel.y-2)) {
+            createPixel("yeti_body", pixel.x, pixel.y-1);
+            createPixel("yeti_head", pixel.x, pixel.y-2);
+            if (!isEmpty(pixel.x, pixel.y-1, true) && pixelMap[pixel.x][pixel.y-1].element == "yeti_body") {
+                pixelMap[pixel.x][pixel.y-1].color = pixelColorPick(pixelMap[pixel.x][pixel.y-1]);
+            }
+            if (!isEmpty(pixel.x, pixel.y-2, true) && pixelMap[pixel.x][pixel.y-2].element == "yeti_head") {
+                pixelMap[pixel.x][pixel.y-2].color = pixelColorPick(pixelMap[pixel.x][pixel.y-2]);
+            }
+            pixel.color = pixelColorPick(pixel);
+        }
+        if (tryMove(pixel, pixel.x, pixel.y+1)) {
+            if (!isEmpty(pixel.x, pixel.y-2, true) && pixelMap[pixel.x][pixel.y-2].element == "yeti_body") {
+                if (isEmpty(pixel.x, pixel.y-1)) movePixel(pixelMap[pixel.x][pixel.y-2], pixel.x, pixel.y-1);
+            }
+            if (!isEmpty(pixel.x, pixel.y-3, true) && pixelMap[pixel.x][pixel.y-3].element == "yeti_head") {
+                if (isEmpty(pixel.x, pixel.y-2)) movePixel(pixelMap[pixel.x][pixel.y-3], pixel.x, pixel.y-2);
+            }
+        }
+        
+        var frontX = pixel.x + pixel.dir;
+        if (frontX >= 0 && frontX < width) {
+            var checkY = [pixel.y, pixel.y-1, pixel.y-2];
+            for (var yIndex = 0; yIndex < checkY.length; yIndex++) {
+                var cy = checkY[yIndex];
+                if (!isEmpty(frontX, cy, true)) {
+                    var target = pixelMap[frontX][cy];
+                    if (target && target.element !== "yeti" && target.element !== "yeti_body" && target.element !== "yeti_head") {
+                        if (elements[target.element] && elements[target.element].category === "life") {
+                            var targetX = target.x + (pixel.dir * 8);
+                            var targetY = target.y - 6;
+                            if (targetX >= 0 && targetX < width && targetY >= 0 && targetY < height) {
+                                if (isEmpty(targetX, targetY)) {
+                                    movePixel(target, targetX, targetY);
+                                    logMessage("¡El Yeti te lanzó!");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        doHeat(pixel);
+        if (pixel.dead) {
+            if (pixelTicks-pixel.dead > 200) {
+                pixel.element = "rotten_meat";
+                pixel.color = pixelColorPick(pixel);
+            }
+            return;
+        }
+        if (!isEmpty(pixel.x, pixel.y-1, true) && pixelMap[pixel.x][pixel.y-1].element == "yeti_body") {
+            var body = pixelMap[pixel.x][pixel.y-1];
+            if (body.dead) { pixel.dead = body.dead; }
+        } else { var body = null; }
+        if (!isEmpty(pixel.x, pixel.y-2, true) && pixelMap[pixel.x][pixel.y-2].element == "yeti_head") {
+            var head = pixelMap[pixel.x][pixel.y-2];
+        } else { var head = null; }
+        if (body == null || head == null) { return; }
+        
+        if (Math.random() < 0.95) {
+            var movesToTry = [
+                [1*pixel.dir, 0],
+                [1*pixel.dir, -1]
+            ];
+            while (movesToTry.length > 0) {
+                var move = movesToTry.splice(Math.floor(Math.random() * movesToTry.length), 1)[0];
+                if (isEmpty(pixel.x+move[0], pixel.y+move[1]-1) && isEmpty(pixel.x+move[0], pixel.y+move[1]-2)) {
+                    if (tryMove(pixel, pixel.x+move[0], pixel.y+move[1])) {
+                        movePixel(body, body.x+move[0], body.y+move[1]);
+                        movePixel(head, head.x+move[0], head.y+move[1]);
+                        break;
+                    }
+                }
+            }
+            if (Math.random() < 0.08) { pixel.dir *= -1; }
+        }
+    }
+};
+
+elements.fossil_block = {
+    name: "fossil block",
+    color: ["#4a453f", "#5c554e", "#3b3733", "#70675f"],
+    state: "solid",
+    behavior: behaviors.WALL,
+    category: "ice solids",
+    density: 2800,
+    hardness: 0.9,
+    breakInto: "bone",
+    tempHigh: 1200,
+    stateHigh: "magma"
+};
+
+elements.permafrost_ice = {
+    name: "permafrost ice",
+    color: ["#5c8aa6", "#4a738c", "#6da3bf"],
+    state: "solid",
+    behavior: behaviors.WALL,
+    category: "ice solids",
+    density: 940,
+    temp: -10,
+    conduct: 0,
+    hardness: 0.85
+};
+
+elements.permafrost_snow = {
+    name: "permafrost snow",
+    color: ["#d9e5eb", "#c2d1db", "#ebf2f7"],
+    state: "solid",
+    behavior: behaviors.POWDER,
+    category: "ice solids",
+    density: 450,
+    temp: -8,
+    conduct: 0.01
+};
+
+elements.thermal_water = {
+    name: "thermal water",
+    color: ["#4da6ff", "#3399ff", "#66b2ff"],
+    state: "liquid",
+    behavior: behaviors.LIQUID,
+    category: "ice solids",
+    density: 995,
+    temp: 40,
+    tempHigh: 100,
+    stateHigh: "steam",
+    tempLow: 10,
+    stateLow: "water",
+    reactions: {
+        "ice": { elem2: "water", chance: 0.4 },
+        "frozen_meat": { elem2: "meat", chance: 0.3 },
+        "gingerbread_man": { elem2: "termal_water", chance: 0.3 }
+    },
+    tick: function(pixel) {
+        if (Math.random() < 0.03) {
+            if (isEmpty(pixel.x, pixel.y-1)) {
+                createPixel("smoke", pixel.x, pixel.y-1);
+            }
+        }
+    }
+};
+
+elements.frozen_yeti_head = {
+    color: ["#a1c1e0", "#d9c3b0", "#84a9cc"],
+    category: "ice solids",
+    hidden: true,
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti_head"
+};
+
+elements.frozen_yeti_body = {
+    color: ["#a1c1e0", "#ffffff", "#84a9cc"],
+    category: "ice solids",
+    hidden: true,
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti_body"
+};
+
+elements.frozen_yeti = {
+    name: "frozen yeti",
+    color: ["#a1c1e0", "#ffffff", "#84a9cc"],
+    category: "ice solids",
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti"
+};
+
+elements.frozen_yeti_head = {
+    color: ["#a1c1e0", "#d9c3b0", "#84a9cc"],
+    category: "ice solids",
+    hidden: true,
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti_head"
+};
+
+elements.frozen_yeti_body = {
+    color: ["#a1c1e0", "#ffffff", "#84a9cc"],
+    category: "ice solids",
+    hidden: true,
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti_body"
+};
+
+elements.frozen_yeti = {
+    name: "frozen yeti",
+    color: ["#a1c1e0", "#ffffff", "#84a9cc"],
+    category: "ice solids",
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti"
+};
+
+elements.frozen_yeti_head = {
+    color: ["#a1c1e0", "#d9c3b0", "#84a9cc"],
+    category: "ice solids",
+    hidden: true,
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti_head"
+};
+
+elements.frozen_yeti_body = {
+    color: ["#a1c1e0", "#ffffff", "#84a9cc"],
+    category: "ice solids",
+    hidden: true,
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 0,
+    stateHigh: "yeti_body"
+};
+
+elements.frozen_yeti = {
+    name: "frozen yeti",
+    color: ["#a1c1e0", "#ffffff", "#84a9cc"],
+    category: "ice solids",
+    state: "solid",
+    density: 2000,
+    behavior: behaviors.WALL,
+    temp: -50,
+    tempHigh: 20,
+    stateHigh: "yeti"
 };
