@@ -1,8 +1,10 @@
-/created by 𝔜𝔒𝔖𝔈𝔉
-//penguins.js v 3.0 add various human species, more artic animals, new blocks, structures and the cryo nuke (: but that version includes a beta of 4.0 (:
+//created by 𝔜𝔒𝔖𝔈𝔉
+//penguins.js v2.0 fixed various bugs and added walrus, artic wolf and clam (:
+
 //v 1.0 some ice animals
 elements.penguin = {
-    color: ["#0c0c12","#babae3","#02022e","#d2d2fc","#000000","#5946f0","#5b5b5c","#95a7c4","#f5f17f"],
+    name: "penguin",
+    color: ["#0c0c12","#babae3","#02022e","#d2d2fc","#000000","#5946f0","#5b5b5c","#95a7c4","#f5f17f","#723911"],
     state: "solid",
     behavior: [
         "XX|SW:water,salt_water,sugar_water,dirty_water%10|XX",
@@ -27,8 +29,9 @@ elements.penguin = {
         "dirty_water": { elem1:"rotten_meat", chance:0.0001 },
         "pool_water": { elem1:"rotten_meat", chance:0.005 },
         "vinegar": { elem1:"rotten_meat", chance:0.001 }
+
     },
-    egg: "little_penguin",                        
+    egg: "little_penguin", 
     foodNeed: 10,
     temp: 30,
     tempHigh: 1000,
@@ -44,7 +47,8 @@ elements.penguin = {
 };
 
 elements.little_penguin = {
-    color: ["#e0e0e0","#cad7ed","#4e6282","#373f4a","#fff6a8"],
+    name: "little penguin",
+    color: ["#e0e0e0","#cad7ed","#4e6282","#373f4a","#fff6a8","#723911"],
     state: "solid",
     behavior: [
         "XX|SW:water,salt_water,sugar_water,dirty_water%10|XX",
@@ -495,7 +499,7 @@ elements.arctic_fox = {
 };
 
 elements.inuit = {
-    color: ["#543d2b", "#3a4f66"],
+    color: ["#54453b", "#36424f", "#64605d"],
     category: "life",
     properties: {
         dead: false,
@@ -537,14 +541,6 @@ elements.inuit_body = {
     reactions: {
         "cancer": { "elem1":"cancer", "chance":0.005 },
         "radiation": { "elem1":["ash","meat","rotten_meat","cooked_meat"], "chance":0.4 },
-        "penguin": { "elem2": null, "chance": 0.2 },
-        "little_penguin": { "elem2": null, "chance": 0.2 },
-        "seal": { "elem2": null, "chance": 0.2 },
-        "walrus": { "elem2": null, "chance": 0.2 },
-        "arctic_hare": { "elem2": null, "chance": 0.2 },
-        "fish": { "elem2": null, "chance": 0.3 },
-        "herring": { "elem2": null, "chance": 0.3 },
-        "clam": { "elem2": null, "chance": 0.3 }
     },
     properties: {
         dead: false,
@@ -575,15 +571,11 @@ elements.inuit_body = {
             }
             return;
         }
-
         if (!isEmpty(pixel.x, pixel.y-1, true) && pixelMap[pixel.x][pixel.y-1].element == "inuit_head") {
             var head = pixelMap[pixel.x][pixel.y-1];
-            if (head.dead) {
-                pixel.dead = head.dead;
-            }
+            if (head.dead) { pixel.dead = head.dead; }
         }
         else { var head = null; }
-
         if (isEmpty(pixel.x, pixel.y-1)) {
             if (Math.random() < 0.1) {
                 createPixel("blood", pixel.x, pixel.y-1);
@@ -629,7 +621,9 @@ elements.inuit_head = {
     burnInto: "cooked_meat",
     reactions: {
         "cancer": { "elem1":"cancer", "chance":0.005 },
-        "radiation": { "elem1":["ash","meat","rotten_meat","cooked_meat"], "chance":0.4 }
+        "radiation": { "elem1":["ash","meat","rotten_meat","cooked_meat"], "chance":0.4 },
+        "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
+        "poison": { elem1: "rotten_meat", chance: 0.2 },
     },
     properties: {
         dead: false
@@ -645,7 +639,6 @@ elements.inuit_head = {
                 return;
             }
         }
-
         if (!isEmpty(pixel.x, pixel.y+1, true) && pixelMap[pixel.x][pixel.y+1].element == "inuit_body") {
             var body = pixelMap[pixel.x][pixel.y+1];
             if (body.dead) {
@@ -653,7 +646,6 @@ elements.inuit_head = {
             }
         }
         else { var body = null; }
-
         if (isEmpty(pixel.x, pixel.y+1)) {
             tryMove(pixel, pixel.x, pixel.y+1);
             if (isEmpty(pixel.x, pixel.y+1) && !pixel.dead && Math.random() < 0.1) {
@@ -772,7 +764,7 @@ elements.santa_hat = {
     tempLow: -273,
     reactions: {
         "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
-        "poison": { elem1: "rotten_meat", chance: 0.2 }
+        "poison": { elem1: "rotten_meat", chance: 0.2 },
     },
     properties: { dead: false },
     tick: function(pixel) {
@@ -805,7 +797,8 @@ elements.santa_head = {
     tempLow: -273,
     reactions: {
         "oxygen": { elem2: "carbon_dioxide", chance: 0.3 },
-        "poison": { elem1: "rotten_meat", chance: 0.2 }
+        "poison": { elem1: "rotten_meat", chance: 0.2 },
+        "gingerbread_man": { elem1: "santa_head", elem2: null, chance: 0.35 }
     },
     properties: { dead: false },
     tick: function(pixel) {
@@ -835,6 +828,9 @@ elements.santa = {
     },
     onPlace: function(pixel) {
         logMessage("merry christmas");
+    },
+    reactions: {
+        "gingerbread_man": { elem1: "santa", elem2: null, chance: 0.35 }
     },
     tick: function(pixel) {
         if (isEmpty(pixel.x, pixel.y-1) && isEmpty(pixel.x, pixel.y-2)) {
@@ -892,6 +888,8 @@ elements.santa = {
     }
 };
 
+
+
 elements.gingerbread_man = {
     name: "gingerbread man ",
     color: ["#c48b53", "#b3773e", "#a1642a", "#ffffff", "#5bc0be"],
@@ -907,6 +905,7 @@ elements.gingerbread_man = {
         "salt_water": { elem1: "sugar_water", chance: 0.15 },
         "dirty_water": { elem1: "sugar_water", chance: 0.15 },
         "milk": { elem1: "sugar_water", chance: 0.2 },
+        "thermal_water": { elem1: "sugar_water", chance: 0.2 },
         "fire": { elem1: "ash", chance: 0.1 },
         "magma": { elem1: "smoke", chance: 0.3 },
         "oxygen": { elem2: "carbon_dioxide", chance: 0.2 },
@@ -1026,7 +1025,7 @@ elements.marlon_head = {
 
 elements.marlon = {
     name: "marlon",
-    color: ["#1a52c5", "#143fa3"],
+    color: ["#1ab1c5", "#1471a3"],
     category: "life",
     properties: {
         dead: false,
@@ -1195,7 +1194,7 @@ elements.igloo_ice = {
 };
 
 elements.greenland_shark = {
-    name: "greenland shark",
+    name: "Greenland shark",
     color: ["#3d4246", "#2f3235", "#212325", "#4a4641", "#1a1c1e"],
     state: "solid",
     category: "life",
@@ -1524,8 +1523,7 @@ elements.iceberg = {
     }
 };
 
-//4.0 BETA version, coming soon on winter 2026
-
+//v 4.0 historical and omega
 elements.emperor_hat = {
     color: "#fad61d",
     category: "life",
@@ -1892,7 +1890,7 @@ elements.yeti = {
 
 elements.fossil_block = {
     name: "fossil block",
-    color: ["#4a453f", "#5c554e", "#3b3733", "#70675f"],
+    color: ["#747372", "#aa9885", "#8c755d", "#9d8d7e"],
     state: "solid",
     behavior: behaviors.WALL,
     category: "ice solids",
@@ -1905,7 +1903,7 @@ elements.fossil_block = {
 
 elements.permafrost_ice = {
     name: "permafrost ice",
-    color: ["#5c8aa6", "#4a738c", "#6da3bf"],
+    color: ["#8bd0fa", "#4a738c", "#6da3bf"],
     state: "solid",
     behavior: behaviors.WALL,
     category: "ice solids",
@@ -1928,7 +1926,7 @@ elements.permafrost_snow = {
 
 elements.thermal_water = {
     name: "thermal water",
-    color: ["#4da6ff", "#3399ff", "#66b2ff"],
+    color: ["#55c3d7", "#7eb3e9", "#66e3ff"],
     state: "liquid",
     behavior: behaviors.LIQUID,
     category: "ice solids",
